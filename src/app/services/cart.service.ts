@@ -6,7 +6,7 @@ import { CartItem } from "../common/cart-item";
   providedIn: "root",
 })
 export class CartService {
-  carItems: CartItem[] = [];
+  cartItems: CartItem[] = [];
   totalPrice: Subject<number> = new Subject<number>();
   totalQuantity: Subject<number> = new Subject<number>();
 
@@ -17,9 +17,9 @@ export class CartService {
     let alreadyExistsInCart: boolean = false;
     let existingCartItem: CartItem = undefined;
 
-    if (this.carItems.length > 0) {
+    if (this.cartItems.length > 0) {
       //find the item in the cart based on item id
-      existingCartItem = this.carItems.find(
+      existingCartItem = this.cartItems.find(
         (tempCartItem) => tempCartItem.id === theCartItem.id
       );
       //check if we found it
@@ -31,7 +31,7 @@ export class CartService {
       existingCartItem.quantity++;
     } else {
       //just add the item to array
-      this.carItems.push(theCartItem);
+      this.cartItems.push(theCartItem);
     }
 
     //compute cart total price and total quantity
@@ -42,12 +42,35 @@ export class CartService {
     let totalPriceValue: number = 0;
     let totalQuantityValue: number = 0;
 
-    for (let currentCartItem of this.carItems) {
+    for (let currentCartItem of this.cartItems) {
       totalPriceValue += currentCartItem.quantity * currentCartItem.unitPrice;
       totalQuantityValue += currentCartItem.quantity;
     }
 
     this.totalPrice.next(totalPriceValue);
     this.totalQuantity.next(totalQuantityValue);
+  }
+
+  decrementQuantity(theCartItem: CartItem) {
+    theCartItem.quantity--;
+
+    if (theCartItem.quantity === 0) {
+      this.remove(theCartItem);
+    } else {
+      this.computeCartTotals();
+    }
+  }
+
+  remove(theCartItem: CartItem) {
+    //get index of item in the array
+    const itemIndex = this.cartItems.findIndex(
+      (tempCartItem) => (tempCartItem.id = theCartItem.id)
+    );
+
+    //if found, remove the item from the array at the given index
+    if (itemIndex > -1) {
+      this.cartItems.splice(itemIndex, 1);
+      this.computeCartTotals();
+    }
   }
 }
